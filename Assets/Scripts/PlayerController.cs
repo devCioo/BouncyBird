@@ -15,25 +15,23 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        _rb = GetComponent<Rigidbody2D>();
+        _anim = GetComponent<Animator>();
     }
 
     private void OnEnable()
     {
         transform.position = new Vector3(transform.position.x, 0.3f, transform.position.z);
-    }
-
-    private void Start()
-    {
-        _rb = GetComponent<Rigidbody2D>();
-        _anim = GetComponent<Animator>();
+        _rb.velocity = new Vector2(0f, 0f);
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !GameManager.instance.isGamePaused)
         {
             _rb.velocity = Vector2.up * _velocity;
             _anim.SetTrigger("flap");
+            AudioManager.instance.PlaySFX(1);
         }
     }
 
