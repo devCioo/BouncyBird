@@ -8,8 +8,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-    private int _score;
-    private bool wasGamePaused = false;
+    private int _score, _highscore;
+    private bool wasGamePaused = false, highscoreBeaten = false;
     public bool isGamePaused = true;
 
     private void Awake()
@@ -21,12 +21,20 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 0f;
         PlayerController.instance.enabled = false;
+        if (!PlayerPrefs.HasKey("highscore"))
+        {
+            PlayerPrefs.SetInt("highscore", 0);
+        }
+        _highscore = PlayerPrefs.GetInt("highscore");
+        UIController.instance.highscoreText.text = _highscore.ToString();
     }
 
     public void Play()
     {
         _score = 0;
         isGamePaused = false;
+        highscoreBeaten = false;
+        _highscore = PlayerPrefs.GetInt("highscore");
         UIController.instance.score.gameObject.SetActive(true);
         UIController.instance.score.text = _score.ToString();
 
@@ -104,11 +112,44 @@ public class GameManager : MonoBehaviour
         UIController.instance.playButton.SetActive(true);
         UIController.instance.pauseButton.SetActive(false);
         UIController.instance.settingsButton.SetActive(true);
+        if (highscoreBeaten)
+        {
+            PlayerPrefs.SetInt("highscore", _score);
+            UIController.instance.highscoreText.text = PlayerPrefs.GetInt("highscore").ToString();
+        }
     }
 
     public void IncreaseScore()
     {
         _score++;
         UIController.instance.score.text = _score.ToString();
+        if (!highscoreBeaten && _score > _highscore)
+        {
+            StartCoroutine(BlinkHighscore());
+            highscoreBeaten = true;
+            UIController.instance.highscoreText.text = _score.ToString();
+        }
+        if (highscoreBeaten)
+        {
+            UIController.instance.highscoreText.text = _score.ToString();
+        }
+    }
+
+    private IEnumerator BlinkHighscore()
+    {
+        float i;
+        for (i = 0f; i < 1f; i += 0.1f)
+        {
+            if (UIController.instance.highscoreImage.color == Color.white)
+            {
+                UIController.instance.highscoreImage.color = Color.green;
+            }
+            else
+            {
+                UIController.instance.highscoreImage.color = Color.white;
+            }
+
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }
